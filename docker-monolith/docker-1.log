@@ -1,0 +1,10 @@
+REPOSITORY                        TAG                 IMAGE ID            CREATED             SIZE
+my-first-docker/ubuntu-tmp-file   latest              752230e66ad5        49 seconds ago      125MB
+ubuntu                            16.04               005d2078bdfa        5 days ago          125MB
+hello-world                       latest              bf756fb1ae65        3 months ago        13.3kB
+
+Вывод команд:
+docker inspect <u_container_id>
+docker inspect <u_image_id>
+
+Отличается отличается тем, что контейнер имеет полное описание системной среды, сети, процессы, тогда как в имэйдже содержится только информация о слоях, и операционке, т.е. общая информация без подробностей.
