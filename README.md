@@ -61,16 +61,32 @@ docker-machine - встроенный в докер инструмент для 
 
 Все докер команды, которые запускаются в той же консоли после eval $(docker-machine env <имя>) работают с удаленным докер демоном в GCP
 
-`export GOOGLE_PROJECT=docker-xxx`
-```
+export GOOGLE_PROJECT=docker-275709
+
 docker-machine create --driver google \
 --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
 --google-machine-type n1-standard-1 \
 --google-zone europe-west1-b \
 docker-host
-```
-`docker-machine ls` #Проверяем, что наш Docker-хост успешно создан
-```eval $(docker-machine env docker-host)
-docker-machine env docker-host```
 
-`docker run --name reddit -d --network=host reddit:latest`
+docker-machine ls #Проверяем, что наш Docker-хост успешно создан
+eval $(docker-machine env docker-host)
+docker-machine env docker-host
+
+docker run --name reddit -d --network=host reddit:latest
+
+Создание своего образа
+
+ docker build -t reddit:latest .
+
+Работа с Docker Hub
+
+docker login
+
+Загрузим наш образ на docker hub для
+использования в будущем:
+$ docker tag reddit:latest <your-login>/otus-reddit:1.0
+
+$ docker push <your-login>/otus-reddit:1.0
+
+docker run --name reddit -d -p 9292:9292 <your-login>/otus-reddit:1.0
