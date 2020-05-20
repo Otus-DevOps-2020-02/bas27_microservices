@@ -26,18 +26,9 @@ services:
       - back_net
       - front_net
 
-<<<<<<< HEAD
 volumes:
   post_db:
 
 networks:
   back_net:
   front_net:
-=======
-  volumes:
-    post_db:
-
-  networks:
-    back_net:
-    front_net:
->>>>>>> 186d8ba02964d4fd13d234c3e4623c487c94523e
