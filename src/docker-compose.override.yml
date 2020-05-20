@@ -1,0 +1,10 @@
+version: '3.3'
+services:
+  ui:
+    command: '--debug'
+    environment:
+      DEBUG: 'true'
+  comment:
+    command: '--debug'
+    environment:
+      DEBUG: 'true'
