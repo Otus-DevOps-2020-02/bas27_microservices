@@ -14,12 +14,13 @@ variable zone {
 
 variable "machine_type" {
   description = "Type machine"
-  default = "g1-small"
+  default        = "n1-standard-1"
+  #default     = "g1-small"
 }
 
 variable "node_count" {
   description = "number my node"
-  default = 1
+  default     = 1
 }
 
 variable public_key_path {
@@ -32,6 +33,10 @@ variable private_key_path {
 }
 variable disk_image {
   description = "Disk image"
+}
+
+variable "external_ip" {
+  description = "ext vm address"
 }
 /* variable app_disk_image {
   description = "Disk image for reddit app"
