@@ -1,122 +1,68 @@
 # bas27_microservices
 
+### _Устройство Gitlab CI. Построение процесса непрерывной поставки_
+
+
+- Подготовить инсталляцию Gitlab CI
+
+С помощью Terraform развернули хост для поднятия сервера Gitlab CI.\
+Для запуска Gitlab CI мы будем использовать omnibus-установку.
+
+https://docs.gitlab.com/omnibus/README.html \
+https://docs.gitlab.com/omnibus/docker/README.html
+
+Устанавливаем необходимую среду на сервере (скрипт `terraform\files\inst_docker copy.sh`)
+
+В той же директории, где docker-compose.yml ( /srv/gitlab ) выполняем: `docker-compose up -d`
+https://docs.gitlab.com/omnibus/docker/README.html#install-gitlab-using-docker-compose
+
+- Подготовить репозиторий с кодом приложения
+
+После входа на сервер Gitlab CI создаем группу, создаем проект
+
+• Каждый проект в Gitlab CI принадлежит к группе проектов \
+• В проекте может быть определен CI/CD пайплайн \
+• Задачи (jobs) входящие в пайплайн должны исполняться на runners
+
 ```
-docker pull mongo:latest
-docker build -t <your-dockerhub-login>/post:1.0 ./post-py
-docker build -t <your-dockerhub-login>/comment:1.0 ./comment
-docker build -t <your-dockerhub-login>/ui:1.0 ./ui
+> git checkout -b gitlab-ci-1
+> git remote add gitlab http://<your-vm-ip>/homework/example.git
+> git push gitlab gitlab-ci-1
 ```
-`docker network create reddit`
+
+- Описать для приложения этапы пайплайна
+
+Чтобы сделать это нам нужно добавить в репозиторий файл .gitlab-ci.yml
+
 ```
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest &&\
-docker run -d --network=reddit --network-alias=post bas27/post:1.0 &&\
-docker run -d --network=reddit --network-alias=comment bas27/comment:1.0 &&\
-docker run -d --network=reddit -p 9292:9292 bas27/ui:3.0
+> git add .gitlab-ci.yml
+> git commit -m 'add pipeline definition'
+> git push gitlab gitlab-ci-1
 ```
-`docker kill $(docker ps -q)`
 
-используем другие алиасы при запуске
+Создаем раннер:
 ```
-docker run -d --network=reddit --network-alias=posts --network-alias=comments mongo:latest &&\
-docker run -d --network=reddit --network-alias=post bas27/post:1.0 &&\
-docker run -d --network=reddit --network-alias=comment bas27/comment:1.0 &&\
-docker run -d --network=reddit -p 9292:9292 bas27/ui:1.0
+docker run -d --name gitlab-runner --restart always \
+-v /srv/gitlab-runner/config:/etc/gitlab-runner \
+-v /var/run/docker.sock:/var/run/docker.sock \
+gitlab/gitlab-runner:latest
 ```
-`docker volume create reddit_db`
-
-и подключим созданный раздел к контейнеру с монго:
+После запуска Runner нужно зарегистрировать, это можно сделать командой:
 ```
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db -v reddit_db:/data/db mongo:latest &&\
-docker run -d --network=reddit --network-alias=post bas27/post:1.0 &&\
-docker run -d --network=reddit --network-alias=comment bas27/comment:2.0 &&\
-docker run -d --network=reddit -p 9292:9292 bas27/ui:3.3
+root@gitlab-ci:~# docker exec -it gitlab-runner gitlab-runner register --run-untagged --locked=false
+Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):
+http://<YOUR-VM-IP>/
+Please enter the gitlab-ci token for this runner:
+<TOKEN>
+Please enter the gitlab-ci description for this runner:
+[38689f5588fe]: my-runner
+Please enter the gitlab-ci tags for this runner (comma separated):
+linux,xenial,ubuntu,docker
+Please enter the executor:
+docker
+Please enter the default Docker image (e.g. ruby:2.1):
+alpine:latest
+Runner registered successfully.
 ```
-## Работа с сетью
 
-docker run -ti --rm --network none joffotron/docker-net-tools -c ifconfig
-
-docker network create reddit --driver bridge
-
-docker run -d --network=reddit mongo:latest
-docker run -d --network=reddit bas27/post:1.0
-docker run -d --network=reddit bas27/comment:2.0
-docker run -d --network=reddit -p 9292:9292 bas27/ui:3.3
-
-dns
-
---name <name> (можно задать только 1 имя)
---network-alias <alias-name> (можно задать множество алиасов)
-
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest &&\
-docker run -d --network=reddit --network-alias=post bas27/post:1.0 &&\
-docker run -d --network=reddit --network-alias=comment bas27/comment:2.0 &&\
-docker run -d --network=reddit -p 9292:9292 bas27/ui:3.3
-
-Запустим приложение в 2 разных подсетях бридж
-
-docker network create back_net --subnet=10.0.2.0/24
-docker network create front_net --subnet=10.0.1.0/24
-
-Запустим контейнеры
-docker run -d --network=front_net -p 9292:9292 --name ui bas27/ui:3.3 &&\
-docker run -d --network=back_net --name comment bas27/comment:2.0 &&\
-docker run -d --network=back_net --name post bas27/post:1.0 &&\
-docker run -d --network=back_net --name mongo_db --network-alias=post_db --network-alias=comment_db mongo:latest
-
-Дополнительные сети подключаются командой:
-> docker network connect <network> <container>
-
-docker network connect front_net post &&\
-docker network connect front_net comment
-
-## _сетевой стек Linux_
-
-1) Зайдите по ssh на docker-host и установите пакет bridge-utils
-docker-machine ssh docker-host
-sudo apt-get update && sudo apt-get install bridge-utils
-2) Выполните:
-> docker network ls
-3) Найдите ID сетей, созданных в рамках проекта.
-4) Выполните :
-> ifconfig | grep br
-5) Найдите bridge-интерфейсы для каждой из сетей. Просмотрите
-информацию о каждом.
-6) Выберите любой из bridge-интерфейсов и выполните команду. Ниже
-пример вывода:
-> brctl show <interface>
-7) Давайте посмотрим как выглядит iptables. Выполним:
-sudo iptables -nL -t nat (флаг -v даст чуть больше инфы)
-8) В ходе работы у нас была необходимость публикации порта контейнера
-UI (9292) для доступа к нему снаружи.
-Давайте посмотрим, что Docker при этом сделал. Снова взгляните в iptables
-на таблицу nat.
-Обратите внимание на цепочку DOCKER и правила DNAT в ней.
-DNAT tcp -- 0.0.0.0/0 0.0.0.0/0 tcp dpt:9292 to:172.18.0.2:9292
-Они отвечают за перенаправление трафика на адреса уже конкретных
-контейнеров.
-9) Также выполните:
->
-
-### docker-compose
-
-Linux - (https://docs.docker.com/compose/install/#install-compose)
-либо
-> pip install docker-compose
-
-создаем файл в ./src docker-compose.yml
-
-Остановим контейнеры, запущенные на предыдущих шагах
-> docker kill $(docker ps -q)
-docker rm $(docker ps -aq)
-
-Выполните:
-export USERNAME1=bas27 &&\
-docker-compose up -d &&\
-docker-compose ps
-
-имя проекта:
- - docker-compose -p new_project_name up #запуск нескольких копий окружений с одинаковой композицией;
- - имя проекта композиции задается через переменную `COMPOSE_PROJECT_NAME` в файле .env
-https://docs.docker.com/compose/compose-file/#aliases
-
-docker-compose up -f docker-compose.yml -f docker-compose.override.yml --debug -w 2
+Разворачиваем приложение reddit
