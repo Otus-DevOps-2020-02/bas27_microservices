@@ -9,3 +9,8 @@ packer/variables.json
 jdauphant.nginx
 vault.key
 src/.env
+src/docker-compose.yml
+docker/.env
+docker/docker-compose.yml
+*/.env
+*/docker-compose.yml

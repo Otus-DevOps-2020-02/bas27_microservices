@@ -9,16 +9,16 @@ services:
   ui:
     image: "${USER_NAME}/ui:$VER_UI"
     ports:
-      - $EXT_PORT:9292/tcp
+      - '9292:9292'
     networks:
       - front_net
   post:
-    image: ${USER_NAME}/post:1.0
+    image: ${USER_NAME}/post-py:latest
     networks:
       - back_net
       - front_net
   comment:
-    image: ${USER_NAME}/comment:2.0
+    image: ${USER_NAME}/comment:latest
     networks:
       - back_net
       - front_net
