@@ -135,3 +135,31 @@ export USER_NAME=bas27
 docker build -t $USER_NAME/prometheus .
 
 Где USER_NAME - ВАШ логин от DockerHub.
+
+Выполните сборку образов при помощи скриптов docker_build.sh в директории каждого сервиса.
+```
+/src/ui $ bash docker_build.sh
+/src/post-py $ bash docker_build.sh
+/src/comment $ bash docker_build.sh
+```
+Или сразу все из корня репозитория:
+`for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done`
+
+Определите в вашем
+docker/docker-compose.yml файле новый сервис.
+```
+services:
+...
+prometheus:
+image: ${USERNAME}/prometheus
+ports:
+- '9090:9090'
+volumes:
+- prometheus_data:/prometheus
+command:
+- '--config.file=/etc/prometheus/prometheus.yml'
+- '--storage.tsdb.path=/prometheus'
+- '--storage.tsdb.retention=1d'
+volumes:
+prometheus_data:
+```
