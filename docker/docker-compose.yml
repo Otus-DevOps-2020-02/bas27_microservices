@@ -13,15 +13,15 @@ services:
     networks:
       - front_net
   post:
-    image: ${USER_NAME}/post-py:latest
+    image: ${USER_NAME}/post-py:1.0
     networks:
       - back_net
       - front_net
   comment:
-    image: ${USER_NAME}/comment:latest
+    image: ${USER_NAME}/comment:2.0
     networks:
       - back_net
-      - front_net
+
 
   prometheus:
     image: ${USER_NAME}/prometheus
