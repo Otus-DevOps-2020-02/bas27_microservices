@@ -3,7 +3,6 @@ global:
   scrape_interval: "5s"
 
 scrape_configs:
-
   - job_name: "prometheus"
     static_configs:
       - targets:
@@ -17,4 +16,9 @@ scrape_configs:
   - job_name: "comment"
     static_configs:
       - targets:
-        - "comment:9292"
+          - "comment:9292"
+
+  - job_name: "node"
+    static_configs:
+      - targets:
+          - "node-exporter:9100"

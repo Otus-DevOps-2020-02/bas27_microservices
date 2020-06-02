@@ -29,12 +29,13 @@ services:
       - front_net
 
   prometheus:
-    image: ${USER_NAME}/prometheus
+    image: ${USER_NAME}/prometheus:0.1
     ports:
       - "9090:9090"
     networks:
       - back_net
       - front_net
+      - ext_net
 
     volumes:
       - prometheus_data:/prometheus
@@ -43,6 +44,20 @@ services:
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention=1d"
 
+  node-exporter:
+    image: prom/node-exporter:v0.15.2
+    networks:
+      - ext_net
+    user: root
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+
 volumes:
   post_db:
   prometheus_data:
@@ -50,3 +65,4 @@ volumes:
 networks:
   back_net:
   front_net:
+  ext_net:
