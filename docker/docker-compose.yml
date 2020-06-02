@@ -17,19 +17,19 @@ services:
       - front_net
 
   post:
-    image: ${USER_NAME}/post-py:1.1
+    image: ${USER_NAME}/post-py
     networks:
       - back_net
       - front_net
 
   comment:
-    image: ${USER_NAME}/comment:2.0
+    image: ${USER_NAME}/comment
     networks:
       - back_net
       - front_net
 
   prometheus:
-    image: ${USER_NAME}/prometheus:0.1
+    image: ${USER_NAME}/prometheus
     ports:
       - "9090:9090"
     networks:
