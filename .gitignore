@@ -14,3 +14,4 @@ docker/.env
 docker/docker-compose.yml
 */.env
 */docker-compose.yml
+src/comment/build_info.txt src/post-py/build_info.txt src/ui/build_info.txt

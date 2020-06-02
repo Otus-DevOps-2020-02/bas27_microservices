@@ -13,12 +13,12 @@ services:
     networks:
       - front_net
   post:
-    image: ${USER_NAME}/post:1.0
+    image: ${USER_NAME}/post-py:1.1
     networks:
       - back_net
       - front_net
   comment:
-    image: ${USER_NAME}/comment:2.0
+    image: ${USER_NAME}/comment:1.3
     networks:
       - back_net
       - front_net
