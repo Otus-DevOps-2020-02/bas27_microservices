@@ -7,27 +7,39 @@ services:
     networks:
       - back_net
   ui:
-    build: ./ui
-    image: "${USERNAME1}/ui:$VER_UI"
+    image: "${USER_NAME}/ui:$VER_UI"
     ports:
       - $EXT_PORT:9292/tcp
     networks:
       - front_net
   post:
-    build: ./post-py
-    image: ${USERNAME1}/post:1.0
+    image: ${USER_NAME}/post-py:1.1
     networks:
       - back_net
       - front_net
   comment:
-    build: ./comment
-    image: ${USERNAME1}/comment:2.0
+    image: ${USER_NAME}/comment:1.3
     networks:
       - back_net
       - front_net
 
+  prometheus:
+    image: ${USER_NAME}/prometheus
+    ports:
+      - '9090:9090'
+    networks:
+      - back_net
+      - front_net
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=1d'
+
 volumes:
   post_db:
+  prometheus_data:
 
 networks:
   back_net:
