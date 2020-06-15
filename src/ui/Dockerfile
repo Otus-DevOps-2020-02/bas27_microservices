@@ -1,18 +1,13 @@
-FROM alpine
+FROM ubuntu:16.04
+RUN apt-get update \
+    && apt-get install -y ruby-full ruby-dev build-essential \
+    && gem install bundler --no-ri --no-rdoc
 
 ENV APP_HOME /app
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 ADD Gemfile* $APP_HOME/
-
-RUN apk --no-cache update &&\
-    apk add ruby-full &&\
-    apk add ruby-dev &&\
-    apk add build-base &&\
-    gem install bundler:1.17.2 --no-document &&\
-    bundle install &&\
-    apk del build-base
-
+RUN bundle install
 ADD . $APP_HOME
 ENV POST_SERVICE_HOST post
 ENV POST_SERVICE_PORT 5000
