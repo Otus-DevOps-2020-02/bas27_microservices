@@ -62,3 +62,53 @@ $ docker-compose -f docker-compose-monitoring.yml up -d
 Ссылки на образы в DockerHub:
 
 https://hub.docker.com/u/bas27
+
+
+## Логирование и распределенная трассировка
+
+Подготовка окружения
+```
+$ export GOOGLE_PROJECT=docker-275709
+docker-machine create --driver google \
+--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+--google-machine-type n1-standard-1 \
+--google-open-port 5601/tcp \
+--google-open-port 9292/tcp \
+--google-open-port 9411/tcp \
+logging
+```
+`$ eval $(docker-machine env logging)`
+
+# узнаем IP адрес
+
+`$ docker-machine ip logging`
+
+
+Выполните сборку образов
+`for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done`
+
+gcloud compute firewall-rules create logging-default --allow tcp:24224
+
+Определим драйвер для логирования для сервиса post внутри compose-файла ( ): \
+`docker/docker-compose.yml`
+```
+…
+post:
+…
+logging:
+  driver: "fluentd"
+  options:
+    fluentd-address: localhost:24224
+    tag: service.post
+```
+$ docker-compose -f docker-compose-logging.yml up -d
+$ docker-compose down
+$ docker-compose up -d
+
+
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml down
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
