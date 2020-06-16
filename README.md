@@ -104,3 +104,11 @@ logging:
 $ docker-compose -f docker-compose-logging.yml up -d
 $ docker-compose down
 $ docker-compose up -d
+
+
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml down
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
