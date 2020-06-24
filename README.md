@@ -18,15 +18,18 @@
 `chmod +x cfssl cfssljson`\
 `sudo mv cfssl cfssljson /usr/local/bin/` \
 
-Проверка cfsslи cfssljsonверсия 1.3.4 или выше устанавливается:
+Проверка `cfssl` и `cfssljson` версия 1.3.4 или выше устанавливается:
 
 `cfssl version`
 
 ```Version: 1.3.4
 Revision: dev
 Runtime: go1.13
+```
+
 cfssljson --version
-Version: 1.3.4
+
+```Version: 1.3.4
 Revision: dev
 Runtime: go1.13
 ```
