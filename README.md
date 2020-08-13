@@ -85,3 +85,5 @@ kubectl apply -f kubernetes/reddit/mongodb-service.yml
 Проверяем:
 пробрасываем порт на ui pod
 $ kubectl port-forward ui-948c5fd56-2wzkg 9292:9292
+
+...
