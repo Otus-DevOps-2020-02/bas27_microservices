@@ -7,10 +7,11 @@ metadata:
     app: reddit
     component: post
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: reddit
+      component: post
   template:
     metadata:
       name: post
