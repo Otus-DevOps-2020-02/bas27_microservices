@@ -1,0 +1,133 @@
+image: alpine:latest
+
+stages:
+  - test
+  - staging
+  - production
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+  except:
+    - triggers
+
+.staging-deploy: &staging-deploy
+  before_script:
+    # install_dependencies
+
+    - apk add -U openssl curl tar gzip bash ca-certificates git
+    - wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+    - wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
+    - apk add glibc-2.23-r3.apk
+    - rm glibc-2.23-r3.apk
+    - curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME
+    - export PATH=${PATH}:$HOME/gsutil
+    - curl https://kubernetes-helm.storage.googleapis.com/helm-v2.16.9-linux-amd64.tar.gz | tar zx
+    - mv linux-amd64/helm /usr/bin/
+    - helm version --client
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x /usr/bin/kubectl
+    - kubectl version --client
+
+    # ensure_namespace
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+    - echo "Checking Tiller..."
+    - helm init --force-upgrade
+    - kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    - >
+      if ! helm version --debug; then
+        echo "Failed to init Tiller."
+        return 1
+      fi
+    - echo ""
+
+  script:
+    - echo "$KUBE_NAMESPACE"
+    - echo "$host"
+    - export track="${1-stable}"
+    - helm dependency build reddit
+    - >
+      helm upgrade --install \
+        --wait \
+        --force \
+        --set mongodb.usePassword=false \
+        --set ui.ingress.host="$host" \
+        --set ui.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)" \
+        --set post.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/post/raw/master/VERSION)" \
+        --set comment.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/comment/raw/master/VERSION)" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        "$name" \
+        reddit
+
+staging:
+  <<: *staging-deploy
+  stage: staging
+  variables:
+    KUBE_NAMESPACE: staging
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    TILLER_NAMESPACE: kube-system
+    name: $CI_ENVIRONMENT_SLUG
+    # CI_REGISTRY: "index.docker.io"
+    # CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    # CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    # CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+
+  environment:
+    name: staging
+    url: http://staging
+  only:
+    refs:
+      - master
+    kubernetes: active
+  except:
+    - triggers
+
+production:
+  <<: *staging-deploy
+  stage: production
+
+  variables:
+    KUBE_NAMESPACE: production
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    TILLER_NAMESPACE: kube-system
+    name: $CI_ENVIRONMENT_SLUG
+    # CI_REGISTRY: "index.docker.io"
+    # CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    # CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    # CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+
+  environment:
+    name: production
+    url: http://production
+  when: manual
+  only:
+    refs:
+      - master
+    kubernetes: active
+  except:
+    - triggers
+
+production_trigers:
+  <<: *staging-deploy
+  stage: production
+  variables:
+    KUBE_NAMESPACE: production
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    TILLER_NAMESPACE: kube-system
+    name: $CI_ENVIRONMENT_SLUG
+    # CI_REGISTRY: "index.docker.io"
+    # CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    # CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    # CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+
+  environment:
+    name: production
+    url: http://production
+  only:
+    refs:
+      - triggers
+    kubernetes: active
