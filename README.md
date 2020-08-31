@@ -1,17 +1,7 @@
-# Kubernetes. Networks, Storages
+# CI/CD в Kubernetes
 
-• Ingress Controller
+• Работа с Helm
 
-• Ingress
+• Развертывание Gitlab в Kubernetes
 
-• Secret
-
-• TLS
-
-• LoadBalancer Service
-
-• Network Policies
-
-• PersistentVolumes
-
-• PersistentVolumeClaims
+• Запуск CI/CD конвейера в Kubernetes
